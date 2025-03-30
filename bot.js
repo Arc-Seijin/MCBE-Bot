@@ -1,41 +1,42 @@
+const mineflayer = require('mineflayer'); // Import mineflayer (or bedrock bot library)
+const express = require('express'); // Import Express for Koyeb health check
 
-const { createClient } = require("bedrock-protocol");
-const express = require("express");
-
-// Minecraft Bot Configuration
-const bot = createClient({
-  host: "Test-LEaV.aternos.me", // Replace with your actual server IP/hostname
-  port: 31944, // Default Bedrock port
-  username: "chikabot69",
-  offline: false, // Set to true if using a cracked server
+// Bot Configuration
+const bot = mineflayer.createBot({
+    host: "YourServer.aternos.me", // Replace with your Aternos server address
+    port: 19132, // Replace with your server port
+    username: "AFK_Bot", // Bot username
+    version: "1.21.70", // Replace with your Minecraft Bedrock version
 });
 
-// Event: When bot connects
-bot.on("join", () => {
-  console.log("Bot joined the server!");
+// Bot Event Listeners
+bot.on('login', () => {
+    console.log("Bot has logged in successfully!");
 });
 
-// Event: When bot disconnects
-bot.on("end", () => {
-  console.log("Bot disconnected! Reconnecting in 5 seconds...");
-  setTimeout(() => {
-    bot.connect();
-  }, 5000);
+bot.on('spawn', () => {
+    console.log("Bot has spawned!");
 });
 
-// Event: Log messages
-bot.on("text", (packet) => {
-  if (packet.source_name) {
-    console.log(`[${packet.source_name}]: ${packet.message}`);
-  }
+bot.on('end', () => {
+    console.log("Bot disconnected. Reconnecting...");
+    setTimeout(() => {
+        bot.connect(); // Auto-reconnect
+    }, 5000);
 });
 
-// Express Server for Koyeb Health Check
+bot.on('error', err => {
+    console.error("Bot encountered an error:", err);
+});
+
+// Health Check Server for Koyeb
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Bot is running!");
+app.get('/', (req, res) => {
+    res.send('Bot is running!');
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Health check server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Health check server running on port ${PORT}`);
+});
