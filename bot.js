@@ -6,8 +6,8 @@ function startBot() {
     bot = createClient({
         host: "Test-LEaV.aternos.me", // Your server address
         port: 31944, // Your server port
-        username: "AFKBot", // Change this to your bot's username
-        offline: false // Set to true if the server is cracked
+        username: "ChikaBot69", // Change this to your bot's username
+        offline: true // Set to true if the server is cracked
     });
 
     bot.on('login', () => {
