@@ -2,8 +2,8 @@ const bedrock = require('bedrock-protocol');
 const express = require('express');
 
 const SERVER_HOST = 'Test-LEaV.aternos.me'; // Your Aternos server IP
-const SERVER_PORT = 19135; // Update this if Aternos changes it
-const USERNAME = 'BotName'; // Change to your bot's name
+const SERVER_PORT = 31944; // Update this if Aternos changes it
+const USERNAME = 'chikabot69'; // Change to your bot's name
 
 let bot;
 
