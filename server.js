@@ -1,9 +1,14 @@
-const express = require("express");
-const app = express();
+const express = require('express');
 
-app.get("/", (req, res) => {
-  res.send("Bot is running!");
+const app = express();
+const PORT = 3000;
+
+// Basic route to check if the server is running
+app.get('/', (req, res) => {
+    res.send('Bot is running and online!');
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start the Express server
+app.listen(PORT, () => {
+    console.log(`Health check server running on port ${PORT}`);
+});
