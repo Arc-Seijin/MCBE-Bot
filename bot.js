@@ -13,7 +13,7 @@ function startBot() {
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: USERNAME,
-        offline: false // Set to true if using cracked server
+        offline: true // Set to true if using cracked server
     });
 
     bot.on('join', () => {
