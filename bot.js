@@ -1,42 +1,33 @@
-const mineflayer = require('mineflayer'); // Import mineflayer (or bedrock bot library)
-const express = require('express'); // Import Express for Koyeb health check
+const { createClient } = require('bedrock-protocol');
 
-// Bot Configuration
-const bot = mineflayer.createBot({
-    host: "YourServer.aternos.me", // Replace with your Aternos server address
-    port: 19132, // Replace with your server port
-    username: "AFK_Bot", // Bot username
-    version: "1.21.70", // Replace with your Minecraft Bedrock version
-});
+let bot;
 
-// Bot Event Listeners
-bot.on('login', () => {
-    console.log("Bot has logged in successfully!");
-});
+function startBot() {
+    bot = createClient({
+        host: "Test-LEaV.aternos.me", // Your server address
+        port: 31944, // Your server port
+        username: "AFKBot", // Change this to your bot's username
+        offline: false // Set to true if the server is cracked
+    });
 
-bot.on('spawn', () => {
-    console.log("Bot has spawned!");
-});
+    bot.on('login', () => {
+        console.log('[BOT] Logged in successfully!');
+    });
 
-bot.on('end', () => {
-    console.log("Bot disconnected. Reconnecting...");
-    setTimeout(() => {
-        bot.connect(); // Auto-reconnect
-    }, 5000);
-});
+    bot.on('end', () => {
+        console.log('[BOT] Disconnected! Reconnecting in 5 seconds...');
+        setTimeout(startBot, 5000); // Reconnect after 5 seconds
+    });
 
-bot.on('error', err => {
-    console.error("Bot encountered an error:", err);
-});
+    bot.on('error', (err) => {
+        console.error('[BOT] Error:', err);
+    });
 
-// Health Check Server for Koyeb
-const app = express();
+    // Prevent AFK Kick by sending a command every 5 minutes
+    setInterval(() => {
+        bot.write('command_request', { command: 'say I am still here!', origin: { type: 0 } });
+    }, 300000); // 5 minutes (300000 ms)
+}
 
-app.get('/', (req, res) => {
-    res.send('Bot is running!');
-});
+startBot();
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Health check server running on port ${PORT}`);
-});
