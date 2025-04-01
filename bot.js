@@ -6,17 +6,24 @@ const SERVER_PORT = 31944; // Fixed port
 const USERNAME_1 = 'chikabot69'; // First bot's name
 const USERNAME_2 = 'chikabadmoosh30'; // Second bot's name
 
-let bot1, bot2;
+let bot1 = null, bot2 = null;
 let activeBot = 1; // Variable to track which bot is active
 
-function startBot(bot, username) {
+function startBot(username) {
     console.log(`[BOT] Connecting as ${username}...`);
-    bot = bedrock.createClient({
+    
+    let bot = bedrock.createClient({
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: username,
         offline: true // Set to true if using cracked server
     });
+
+    if (username === USERNAME_1) {
+        bot1 = bot; // Set bot1
+    } else {
+        bot2 = bot; // Set bot2
+    }
 
     bot.on('spawn', () => {
         console.log(`[BOT] ${username} Spawned into the world!`);
@@ -55,10 +62,10 @@ function startBot(bot, username) {
         // Switch to the other bot immediately after disconnect
         setTimeout(() => {
             if (activeBot === 1) {
-                startBot(bot2, USERNAME_2); // Start bot2 if bot1 disconnects
+                startBot(USERNAME_2); // Start bot2 if bot1 disconnects
                 activeBot = 2;
             } else {
-                startBot(bot1, USERNAME_1); // Start bot1 if bot2 disconnects
+                startBot(USERNAME_1); // Start bot1 if bot2 disconnects
                 activeBot = 1;
             }
         }, 0); // No delay, starts immediately
@@ -69,10 +76,10 @@ function startBot(bot, username) {
         // Same behavior on kick as on disconnect
         setTimeout(() => {
             if (activeBot === 1) {
-                startBot(bot2, USERNAME_2); // Start bot2 if bot1 is kicked
+                startBot(USERNAME_2); // Start bot2 if bot1 is kicked
                 activeBot = 2;
             } else {
-                startBot(bot1, USERNAME_1); // Start bot1 if bot2 is kicked
+                startBot(USERNAME_1); // Start bot1 if bot2 is kicked
                 activeBot = 1;
             }
         }, 0); // No delay
@@ -92,7 +99,7 @@ function startBot(bot, username) {
 }
 
 // Start bot1 initially and ensure bot2 connects when bot1 disconnects
-startBot(bot1, USERNAME_1);
+startBot(USERNAME_1);
 
 // Express server to keep Koyeb awake
 const app = express();
