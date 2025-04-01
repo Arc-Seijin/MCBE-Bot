@@ -42,7 +42,7 @@ function startBot() {
             bot.queue('text', { message: 'I am still here!' });
             console.log('[BOT] Sent AFK message.');
         }
-    }, 300000); // 5 minutes
+    }, 120000); // 5 minutes
 }
 
 // Start bot initially
