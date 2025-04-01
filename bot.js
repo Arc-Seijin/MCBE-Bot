@@ -3,8 +3,8 @@ const express = require('express');
 
 const SERVER_HOST = 'Test-LEaV.aternos.me'; // Your Aternos server IP
 const SERVER_PORT = 31944; // Fixed port
-const USERNAME_1 = 'chikabot69'; // First bot's name
-const USERNAME_2 = 'chikabadmoosh30'; // Second bot's name
+const USERNAME_1 = 'Chikabot69'; // First bot's name
+const USERNAME_2 = 'ChikaBadmoosh'; // Second bot's name
 
 let bot1 = null, bot2 = null;
 let activeBot = 1; // Variable to track which bot is active
