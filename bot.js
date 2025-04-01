@@ -16,6 +16,33 @@ function startBot() {
         offline: true // Set to true if using cracked server
     });
 
+    bot.on('spawn', () => {
+    console.log('[BOT] Spawned into the world!');
+
+    setInterval(() => {
+        if (!bot.entity) return; // Prevent errors if entity isn't ready
+        const newPosition = {
+            x: bot.entity.position.x,
+            y: bot.entity.position.y,
+            z: bot.entity.position.z + 1 // Slight movement forward
+        };
+
+        bot.queue('move_player', {
+            runtime_id: bot.entity.runtimeId,
+            position: newPosition,
+            pitch: bot.entity.pitch,
+            yaw: bot.entity.yaw,
+            head_yaw: bot.entity.headYaw,
+            mode: 0,
+            on_ground: true,
+            ridden_runtime_id: 0,
+            tick: 0n
+        });
+
+        console.log('[BOT] Moved slightly to avoid AFK kick.');
+    }, 60000); // Moves every 1 min
+});
+
     bot.on('join', () => {
         console.log('[BOT] Joined the server!');
     });
