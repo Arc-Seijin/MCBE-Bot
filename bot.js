@@ -60,29 +60,25 @@ function startBot(username) {
     bot.on('disconnect', (reason) => {
         console.log(`[BOT] ${username} Disconnected: ${reason}`);
         // Switch to the other bot immediately after disconnect
-        setTimeout(() => {
-            if (activeBot === 1) {
-                startBot(USERNAME_2); // Start bot2 if bot1 disconnects
-                activeBot = 2;
-            } else {
-                startBot(USERNAME_1); // Start bot1 if bot2 disconnects
-                activeBot = 1;
-            }
-        }, 3000); // 3 seconds delay
+        if (username === USERNAME_1) {
+            startBot(USERNAME_2); // Start bot2 if bot1 disconnects
+            activeBot = 2;
+        } else {
+            startBot(USERNAME_1); // Start bot1 if bot2 disconnects
+            activeBot = 1;
+        }
     });
 
     bot.on('kicked', (reason) => {
         console.log(`[BOT] ${username} Kicked: ${reason}`);
-        // Same behavior on kick as on disconnect
-        setTimeout(() => {
-            if (activeBot === 1) {
-                startBot(USERNAME_2); // Start bot2 if bot1 is kicked
-                activeBot = 2;
-            } else {
-                startBot(USERNAME_1); // Start bot1 if bot2 is kicked
-                activeBot = 1;
-            }
-        }, 3000); // 3 seconds delay
+        // Switch to the other bot immediately after kick
+        if (username === USERNAME_1) {
+            startBot(USERNAME_2); // Start bot2 if bot1 is kicked
+            activeBot = 2;
+        } else {
+            startBot(USERNAME_1); // Start bot1 if bot2 is kicked
+            activeBot = 1;
+        }
     });
 
     bot.on('error', (err) => {
