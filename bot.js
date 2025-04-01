@@ -7,10 +7,9 @@ const USERNAME_1 = 'chikabot69'; // First bot's name
 const USERNAME_2 = 'ChikaBadmoosh'; // Second bot's name
 
 let bot1 = null, bot2 = null;
-let activeBot = 1; // Variable to track which bot is active
 
 function startBot(username) {
-    console.log(`[BOT] Connecting as ${username}...`);
+    console.log(`[BOT] Attempting to connect as ${username}...`);
     
     let bot = bedrock.createClient({
         host: SERVER_HOST,
@@ -19,11 +18,16 @@ function startBot(username) {
         offline: true // Set to true if using cracked server
     });
 
+    // Set bot1 or bot2 based on the username
     if (username === USERNAME_1) {
         bot1 = bot; // Set bot1
     } else {
         bot2 = bot; // Set bot2
     }
+
+    bot.on('login', () => {
+        console.log(`[BOT] ${username} Logging in...`);
+    });
 
     bot.on('spawn', () => {
         console.log(`[BOT] ${username} Spawned into the world!`);
@@ -59,52 +63,39 @@ function startBot(username) {
 
     bot.on('disconnect', (reason) => {
         console.log(`[BOT] ${username} Disconnected: ${reason}`);
-        // Switch to the other bot immediately after disconnect
-        if (username === USERNAME_1) {
-            startBot(USERNAME_2); // Start bot2 if bot1 disconnects
-            activeBot = 2;
-        } else {
-            startBot(USERNAME_1); // Start bot1 if bot2 disconnects
-            activeBot = 1;
-        }
+        // Restart bot on disconnect
+        setTimeout(() => startBot(username), 5000);
     });
 
     bot.on('kicked', (reason) => {
         console.log(`[BOT] ${username} Kicked: ${reason}`);
-        // Switch to the other bot immediately after kick
-        if (username === USERNAME_1) {
-            startBot(USERNAME_2); // Start bot2 if bot1 is kicked
-            activeBot = 2;
-        } else {
-            startBot(USERNAME_1); // Start bot1 if bot2 is kicked
-            activeBot = 1;
-        }
+        // Restart bot on kick
+        setTimeout(() => startBot(username), 5000);
     });
 
     bot.on('error', (err) => {
-        console.log(`[BOT] ${username} Error: ${err}`);
+        console.log(`[BOT] ${username} Error:`, err);
     });
 
     // Send message every 5 minutes to stay AFK
     setInterval(() => {
         if (bot && bot.queue) {
             bot.write('text', { 
-    type: 1, 
-    needs_translation: false, 
-    source_name: username, 
-    message: `${username} is still here!` 
-});
+                type: 1, 
+                needs_translation: false, 
+                source_name: username, 
+                message: `${username} is still here!` 
+            });
             console.log(`[BOT] ${username} Sent AFK message.`);
         }
     }, 120000); // 5 minutes
 }
 
-// Start bot1 initially and ensure bot2 connects when bot1 disconnects
+// Start both bots
 startBot(USERNAME_1);
+setTimeout(() => startBot(USERNAME_2), 5000); // Small delay to prevent conflicts
 
-// Express server to keep Koyeb awake
+// Express health check
 const app = express();
-const PORT = 3000;
-
 app.get('/', (req, res) => res.send('Bots are running!'));
-app.listen(PORT, () => console.log(`Health check server running on port ${PORT}`));
+app.listen(3000, () => console.log(`Health check server running`));
