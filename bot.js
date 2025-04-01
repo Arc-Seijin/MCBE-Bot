@@ -68,7 +68,7 @@ function startBot(username) {
                 startBot(USERNAME_1); // Start bot1 if bot2 disconnects
                 activeBot = 1;
             }
-        }, 0); // No delay, starts immediately
+        }, 3000); // 3 seconds delay
     });
 
     bot.on('kicked', (reason) => {
@@ -82,7 +82,7 @@ function startBot(username) {
                 startBot(USERNAME_1); // Start bot1 if bot2 is kicked
                 activeBot = 1;
             }
-        }, 0); // No delay
+        }, 3000); // 3 seconds delay
     });
 
     bot.on('error', (err) => {
