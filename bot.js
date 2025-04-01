@@ -88,7 +88,12 @@ function startBot(username) {
     // Send message every 5 minutes to stay AFK
     setInterval(() => {
         if (bot && bot.queue) {
-            bot.queue('text', { message: `${username} is still here!` });
+            bot.write('text', { 
+    type: 1, 
+    needs_translation: false, 
+    source_name: username, 
+    message: `${username} is still here!` 
+});
             console.log(`[BOT] ${username} Sent AFK message.`);
         }
     }, 120000); // 5 minutes
