@@ -13,12 +13,8 @@ let bot = bedrock.createClient({
     offline: true // Set to true if using cracked server
 });
 
-// Set bot1 or bot2 based on the username
-if (username === USERNAME_1) {
-    bot1 = bot; // Set bot1
-} else {
-    bot2 = bot; // Set bot2
-}
+if (username === USERNAME_1) bot1 = bot;
+else bot2 = bot;
 
 bot.on('login', () => {
     console.log(`[BOT] ${username} Logging in...`);
@@ -28,8 +24,11 @@ bot.on('spawn', () => {
     console.log(`[BOT] ${username} Spawned into the world!`);
 
     setInterval(() => {
-        if (!bot.entity) return;
-        const randomOffset = (Math.random() - 0.5) * 2; // Random small movement
+        if (!bot.entity) {
+            console.log(`[BOT] ${username} Entity not available for movement.`);
+            return;
+        }
+        const randomOffset = (Math.random() - 0.5) * 2;
         const newPosition = {
             x: bot.entity.position.x + randomOffset,
             y: bot.entity.position.y,
@@ -47,17 +46,20 @@ bot.on('spawn', () => {
             ridden_runtime_id: 0,
             tick: 0n
         });
-
-        console.log(`[BOT] ${username} moved slightly by ${randomOffset.toFixed(2)} blocks.`);
-    }, 60000); // Moves every 1 minute
+        console.log(`[BOT] ${username} moved by ${randomOffset.toFixed(2)} blocks.`);
+    }, 60000); // Move every 1 minute
 
     setInterval(() => {
+        if (!bot.entity) {
+            console.log(`[BOT] ${username} Entity not available for punching.`);
+            return;
+        }
         bot.queue('animate', {
-            action: 1, // Punch animation
-            runtime_id: bot.entity.runtimeId
+            action: 0, // Swing arm (air punch)
+            runtime_entity_id: bot.entity.runtimeId
         });
-        console.log(`[BOT] ${username} punched air.`);
-    }, 45000); // Punches air every 45 seconds
+        console.log(`[BOT] ${username} punched the air.`);
+    }, 45000); // Punch air every 45 seconds
 });
 
 bot.on('join', () => {
@@ -66,13 +68,11 @@ bot.on('join', () => {
 
 bot.on('disconnect', (reason) => {
     console.log(`[BOT] ${username} Disconnected: ${reason}`);
-    // Restart bot on disconnect
     setTimeout(() => startBot(username), 5000);
 });
 
 bot.on('kicked', (reason) => {
     console.log(`[BOT] ${username} Kicked: ${reason}`);
-    // Restart bot on kick
     setTimeout(() => startBot(username), 5000);
 });
 
@@ -80,22 +80,21 @@ bot.on('error', (err) => {
     console.log(`[BOT] ${username} Error:`, err);
 });
 
-// Send message every 5 minutes to stay AFK
 setInterval(() => {
     if (bot && bot.queue) {
-        bot.write('text', { 
-            type: 1, 
-            needs_translation: false, 
-            source_name: username, 
-            message: `${username} is still here!` 
+        bot.write('text', {
+            type: 1,
+            needs_translation: false,
+            source_name: username,
+            message: `${username} is still here!`
         });
         console.log(`[BOT] ${username} Sent AFK message.`);
     }
-}, 120000); // 5 minutes
+}, 120000); // Every 2 minutes
 
 }
 
-// Start both bots startBot(USERNAME_1); setTimeout(() => startBot(USERNAME_2), 5000); // Small delay to prevent conflicts
+startBot(USERNAME_1); setTimeout(() => startBot(USERNAME_2), 5000);
 
-// Express health check const app = express(); app.get('/', (req, res) => res.send('Bots are running!')); app.listen(3000, () => console.log(Health check server running));
+const app = express(); app.get('/', (req, res) => res.send('Bots are running!')); app.listen(3000, () => console.log(Health check server running));
 
