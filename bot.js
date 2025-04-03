@@ -1,47 +1,56 @@
 const bedrock = require('bedrock-protocol');
+const fs = require('fs');
 const express = require('express');
-const fs = require('fs'); // For saving/loading tokens
 
-// Server details
 const SERVER_HOST = 'Test-LEaV.aternos.me';
 const SERVER_PORT = 31944;
 const USERNAME_1 = 'chikabot69';
 const USERNAME_2 = 'ChikaBadmoosh';
-const AUTH_TYPE = 'microsoft'; // Microsoft authentication
-const TOKEN_FILE = 'auth_cache.json'; // Store login tokens
+const AUTH_TYPE = 'microsoft';
+const TOKEN_FILE = './tokens.json';
 
 let bot1 = null;
 let bot2 = null;
 
 // Load saved tokens (if available)
 function loadTokens() {
-    if (fs.existsSync(TOKEN_FILE)) {
-        try {
-            return JSON.parse(fs.readFileSync(TOKEN_FILE));
-        } catch (err) {
-            console.log('[BOT] Failed to load tokens:', err);
+    try {
+        if (fs.existsSync(TOKEN_FILE)) {
+            const data = fs.readFileSync(TOKEN_FILE);
+            return JSON.parse(data);
         }
+    } catch (err) {
+        console.error("[BOT] Failed to load tokens:", err);
     }
     return {};
 }
 
 // Save tokens after login
 function saveTokens(tokens) {
-    fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokens, null, 2));
+    if (!tokens || Object.keys(tokens).length === 0) {
+        console.log("[BOT] No tokens received. Skipping save.");
+        return;
+    }
+
+    try {
+        fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokens, null, 2));
+        console.log("[BOT] Tokens saved successfully.");
+    } catch (err) {
+        console.error("[BOT] Failed to save tokens:", err);
+    }
 }
 
-// Start bot function
 function startBot(username, onSpawn) {
     console.log(`[BOT] Attempting to connect as ${username}...`);
-    
+
     let bot = bedrock.createClient({
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: username,
-        auth: AUTH_TYPE, // Microsoft authentication
-        profilesFolder: '.', // Saves tokens in the current directory
-        cacheAuth: true, // Enables token caching
-        tokens: loadTokens(), // Load existing tokens
+        auth: AUTH_TYPE,
+        profilesFolder: './', // Ensure tokens are saved in the working directory
+        cacheTokens: true, // Enables automatic token caching
+        tokens: loadTokens() // Load stored tokens
     });
 
     bot.on('login', () => {
@@ -55,6 +64,7 @@ function startBot(username, onSpawn) {
 
     bot.on('disconnect', (reason) => {
         console.log(`[BOT] ${username} Disconnected: ${reason}`);
+        setTimeout(() => reconnectBot(username), 5000); // Auto-reconnect after 5 seconds
     });
 
     bot.on('kicked', (reason) => {
@@ -65,7 +75,10 @@ function startBot(username, onSpawn) {
         console.log(`[BOT] ${username} Error:`, err);
     });
 
-    // Save tokens after successful authentication
+    bot.on('authenticated', () => {
+        console.log(`[BOT] ${username} Authenticated successfully.`);
+    });
+
     bot.on('session', (session) => {
         console.log(`[BOT] Saving authentication tokens for ${username}`);
         saveTokens(session.tokens);
@@ -74,47 +87,29 @@ function startBot(username, onSpawn) {
     return bot;
 }
 
-// Bot cycling to avoid AFK kicks
-function cycleBots() {
-    bot1 = startBot(USERNAME_1, () => {
-        setTimeout(() => {
-            bot2 = startBot(USERNAME_2, () => {
-                setTimeout(() => {
-                    console.log("[BOT] Disconnecting bot 1...");
-                    bot1.close();
-                    bot1 = null;
-                    
-                    setTimeout(() => {
-                        bot1 = startBot(USERNAME_1, () => {
-                            setTimeout(() => {
-                                console.log("[BOT] Disconnecting bot 2...");
-                                bot2.close();
-                                bot2 = null;
-                                
-                                // Restart the cycle
-                                setTimeout(cycleBots, 1000);
-                            }, 5000);
-                        });
-                    }, 60000);
-                }, 5000);
-            });
-        }, 60000);
-    });
+// Reconnect bot function
+function reconnectBot(username) {
+    console.log(`[BOT] Reconnecting ${username} in 5 seconds...`);
+    setTimeout(() => {
+        if (username === USERNAME_1) {
+            bot1 = startBot(USERNAME_1);
+        } else {
+            bot2 = startBot(USERNAME_2);
+        }
+    }, 5000);
 }
 
-// Start the bot cycle
-cycleBots();
-
-// ==================== HEALTH CHECK SERVER ====================
+// Health check server
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Health check endpoint
 app.get('/', (req, res) => {
     res.send('Bots are running!');
 });
-
-// Start Express server
-app.listen(PORT, () => {
-    console.log(`[Server] Health check running on port ${PORT}`);
+app.listen(3000, () => {
+    console.log("[Server] Health check running on port 3000");
 });
+
+// Start the bot cycle
+bot1 = startBot(USERNAME_1);
+setTimeout(() => {
+    bot2 = startBot(USERNAME_2);
+}, 30000); // Start second bot after 30 seconds
