@@ -4,7 +4,7 @@ const SERVER_HOST = 'Test-LEaV.aternos.me'; // Aternos server IP const SERVER_PO
 
 let activeBot = null; let nextBot = USERNAME_2;
 
-function startBot(username) { console.log([BOT] Attempting to connect as ${username}...); let bot = bedrock.createClient({ host: SERVER_HOST, port: SERVER_PORT, username: username, offline: true // Set to true for cracked server });
+function startBot(username) { console.log('[BOT] Attempting to connect as ${username}...'); let bot = bedrock.createClient({ host: SERVER_HOST, port: SERVER_PORT, username: username, offline: true // Set to true for cracked server });
 
 bot.on('login', () => {
     console.log(`[BOT] ${username} Logging in...`);
