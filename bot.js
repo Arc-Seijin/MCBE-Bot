@@ -4,6 +4,7 @@ const SERVER_HOST = 'Test-LEaV.aternos.me';
 const SERVER_PORT = 31944;
 const USERNAME_1 = 'chikabot69';
 const USERNAME_2 = 'ChikaBadmoosh';
+const AUTH_TYPE = 'microsoft'; // Enables Microsoft login
 
 let bot1 = null;
 let bot2 = null;
@@ -15,15 +16,15 @@ function startBot(username, onSpawn) {
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: username,
-        offline: true
+        auth: AUTH_TYPE, // Use Microsoft authentication
     });
 
     bot.on('login', () => {
-        console.log(`[BOT] ${username} Logging in...`);
+        console.log(`[BOT] ${username} Logged in.`);
     });
 
     bot.on('spawn', () => {
-        console.log(`[BOT] ${username} Spawned into the world!`);
+        console.log(`[BOT] ${username} Spawned into the world.`);
         if (onSpawn) onSpawn(bot);
     });
 
