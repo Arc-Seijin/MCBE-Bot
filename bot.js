@@ -4,7 +4,7 @@ const express = require('express');
 const SERVER_HOST = 'Test-LEaV.aternos.me';
 const SERVER_PORT = 31944;
 const USERNAME_1 = 'chikabot69';
-const USERNAME_2 = 'ChikaBadmoosh';
+const USERNAME_2 = 'ChikaBadmoosh69';
 
 let bot1 = null;
 let bot2 = null;
