@@ -8,7 +8,7 @@ const USERNAME_2 = 'ChikaBadmoosh';
 let bot1 = null;
 let bot2 = null;
 
-function startBot(username, callback) {
+function startBot(username, onSpawn) {
     console.log(`[BOT] Attempting to connect as ${username}...`);
     
     let bot = bedrock.createClient({
@@ -24,7 +24,7 @@ function startBot(username, callback) {
 
     bot.on('spawn', () => {
         console.log(`[BOT] ${username} Spawned into the world!`);
-        if (callback) callback(bot);
+        if (onSpawn) onSpawn(bot);
     });
 
     bot.on('disconnect', (reason) => {
@@ -49,12 +49,16 @@ function cycleBots() {
                 setTimeout(() => {
                     console.log("[BOT] Disconnecting bot 1...");
                     bot1.close();
+                    bot1 = null;
                     
                     setTimeout(() => {
                         bot1 = startBot(USERNAME_1, () => {
                             setTimeout(() => {
                                 console.log("[BOT] Disconnecting bot 2...");
                                 bot2.close();
+                                bot2 = null;
+                                
+                                // Restart the cycle
                                 setTimeout(cycleBots, 1000);
                             }, 5000);
                         });
