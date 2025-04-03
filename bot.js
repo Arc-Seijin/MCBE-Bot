@@ -1,15 +1,34 @@
 const bedrock = require('bedrock-protocol');
-const express = require('express'); // Import Express for health check
+const express = require('express');
+const fs = require('fs'); // For saving/loading tokens
 
 // Server details
 const SERVER_HOST = 'Test-LEaV.aternos.me';
 const SERVER_PORT = 31944;
 const USERNAME_1 = 'chikabot69';
 const USERNAME_2 = 'ChikaBadmoosh';
-const AUTH_TYPE = 'microsoft'; // Enables Microsoft login
+const AUTH_TYPE = 'microsoft'; // Microsoft authentication
+const TOKEN_FILE = 'auth_cache.json'; // Store login tokens
 
 let bot1 = null;
 let bot2 = null;
+
+// Load saved tokens (if available)
+function loadTokens() {
+    if (fs.existsSync(TOKEN_FILE)) {
+        try {
+            return JSON.parse(fs.readFileSync(TOKEN_FILE));
+        } catch (err) {
+            console.log('[BOT] Failed to load tokens:', err);
+        }
+    }
+    return {};
+}
+
+// Save tokens after login
+function saveTokens(tokens) {
+    fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokens, null, 2));
+}
 
 // Start bot function
 function startBot(username, onSpawn) {
@@ -19,7 +38,10 @@ function startBot(username, onSpawn) {
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: username,
-        auth: AUTH_TYPE, // Use Microsoft authentication
+        auth: AUTH_TYPE, // Microsoft authentication
+        profilesFolder: '.', // Saves tokens in the current directory
+        cacheAuth: true, // Enables token caching
+        tokens: loadTokens(), // Load existing tokens
     });
 
     bot.on('login', () => {
@@ -41,6 +63,12 @@ function startBot(username, onSpawn) {
 
     bot.on('error', (err) => {
         console.log(`[BOT] ${username} Error:`, err);
+    });
+
+    // Save tokens after successful authentication
+    bot.on('session', (session) => {
+        console.log(`[BOT] Saving authentication tokens for ${username}`);
+        saveTokens(session.tokens);
     });
 
     return bot;
