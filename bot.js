@@ -1,20 +1,10 @@
 const bedrock = require('bedrock-protocol'); const express = require('express');
 
-const SERVER_HOST = 'Test-LEaV.aternos.me'; // Your Aternos server IP const SERVER_PORT = 31944; // Fixed port const USERNAME_1 = 'chikabot69'; // First bot's name const USERNAME_2 = 'ChikaBadmoosh'; // Second bot's name
+const SERVER_HOST = 'Test-LEaV.aternos.me'; // Aternos server IP const SERVER_PORT = 31944; // Fixed port const USERNAME_1 = 'chikabot69'; const USERNAME_2 = 'ChikaBadmoosh';
 
-let bot1 = null, bot2 = null;
+let activeBot = null; let nextBot = USERNAME_2;
 
-function startBot(username) { console.log([BOT] Attempting to connect as ${username}...);
-
-let bot = bedrock.createClient({
-    host: SERVER_HOST,
-    port: SERVER_PORT,
-    username: username,
-    offline: true // Set to true if using cracked server
-});
-
-if (username === USERNAME_1) bot1 = bot;
-else bot2 = bot;
+function startBot(username) { console.log([BOT] Attempting to connect as ${username}...); let bot = bedrock.createClient({ host: SERVER_HOST, port: SERVER_PORT, username: username, offline: true // Set to true for cracked server });
 
 bot.on('login', () => {
     console.log(`[BOT] ${username} Logging in...`);
@@ -22,19 +12,23 @@ bot.on('login', () => {
 
 bot.on('spawn', () => {
     console.log(`[BOT] ${username} Spawned into the world!`);
-
+    activeBot = bot;
+    
+    setTimeout(() => {
+        nextBot = username === USERNAME_1 ? USERNAME_2 : USERNAME_1;
+        console.log(`[BOT] Switching to ${nextBot} in 1 minute...`);
+        bot.end();
+        setTimeout(() => startBot(nextBot), 60000); // Wait 1 min before switching
+    }, 60000);
+    
     setInterval(() => {
-        if (!bot.entity) {
-            console.log(`[BOT] ${username} Entity not available for movement.`);
-            return;
-        }
+        if (!bot.entity) return;
         const randomOffset = (Math.random() - 0.5) * 2;
         const newPosition = {
             x: bot.entity.position.x + randomOffset,
             y: bot.entity.position.y,
             z: bot.entity.position.z + randomOffset
         };
-
         bot.queue('move_player', {
             runtime_id: bot.entity.runtimeId,
             position: newPosition,
@@ -46,24 +40,29 @@ bot.on('spawn', () => {
             ridden_runtime_id: 0,
             tick: 0n
         });
-        console.log(`[BOT] ${username} moved by ${randomOffset.toFixed(2)} blocks.`);
-    }, 60000); // Move every 1 minute
-
+        console.log(`[BOT] ${username} moved slightly.`);
+    }, 30000);
+    
     setInterval(() => {
-        if (!bot.entity) {
-            console.log(`[BOT] ${username} Entity not available for punching.`);
-            return;
-        }
+        if (!bot.entity) return;
         bot.queue('animate', {
-            action: 0, // Swing arm (air punch)
-            runtime_entity_id: bot.entity.runtimeId
+            action: 0, // Swing arm (punch air)
+            runtime_id: bot.entity.runtimeId
         });
-        console.log(`[BOT] ${username} punched the air.`);
-    }, 45000); // Punch air every 45 seconds
-});
-
-bot.on('join', () => {
-    console.log(`[BOT] ${username} Joined the server!`);
+        console.log(`[BOT] ${username} punched air.`);
+    }, 45000);
+    
+    setInterval(() => {
+        if (bot && bot.queue) {
+            bot.write('text', { 
+                type: 1, 
+                needs_translation: false, 
+                source_name: username, 
+                message: `${username} is still here!` 
+            });
+            console.log(`[BOT] ${username} Sent AFK message.`);
+        }
+    }, 120000);
 });
 
 bot.on('disconnect', (reason) => {
@@ -80,21 +79,10 @@ bot.on('error', (err) => {
     console.log(`[BOT] ${username} Error:`, err);
 });
 
-setInterval(() => {
-    if (bot && bot.queue) {
-        bot.write('text', {
-            type: 1,
-            needs_translation: false,
-            source_name: username,
-            message: `${username} is still here!`
-        });
-        console.log(`[BOT] ${username} Sent AFK message.`);
-    }
-}, 120000); // Every 2 minutes
-
 }
 
-startBot(USERNAME_1); setTimeout(() => startBot(USERNAME_2), 5000);
+// Start first bot startBot(USERNAME_1);
 
-const app = express(); app.get('/', (req, res) => res.send('Bots are running!')); app.listen(3000, () => console.log(Health check server running));
+// Express health check const app = express(); app.get('/', (req, res) => res.send('Bots are running!')); app.listen(3000, () => console.log(Health check server running));
 
+            
