@@ -4,11 +4,11 @@ const http = require('http');
 
 const SERVER_HOST = 'Test-LEaV.aternos.me';
 const SERVER_PORT = 31944;
-const USERNAME_1 = 'chikabot69';       
-const USERNAME_2 = 'ChikaBadmoosh69';    
+const USERNAME_1 = 'chikabot69'; // cb
+const USERNAME_2 = 'ChikaBadmoosh69'; // CB
 
-let currentBot = 1; // 1 means chikabot69, 2 means ChikaBadmoosh69
-let bot = null;
+let bot1 = null;
+let bot2 = null;
 
 function startBot(username) {
     console.log(`[BOT] Attempting to connect as ${username}...`);
@@ -16,7 +16,7 @@ function startBot(username) {
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: username,
-        offline: true 
+        offline: true // no Microsoft login
     });
 
     bot.on('login', () => console.log(`[BOT] ${username} Logged in.`));
@@ -28,26 +28,37 @@ function startBot(username) {
     return bot;
 }
 
+// Bot loop logic
 async function botCycle() {
     console.log('[CYCLE] Starting bot cycle...');
 
-    // Choose which bot to start
-    const username = currentBot === 1 ? USERNAME_1 : USERNAME_2;
-    bot = startBot(username);
+    while (true) {
+        if (!bot1) {
+            bot1 = startBot(USERNAME_1);
+        }
 
-    await wait(60 * 1000); // wait 1 minute
+        await wait(60 * 1000); // wait 1 minute
 
-    // Disconnect the current bot
-    if (bot) {
-        bot.disconnect();
-        bot = null;
+        bot2 = startBot(USERNAME_2);
+
+        await wait(5000); // wait 5 seconds
+
+        if (bot1) {
+            bot1.disconnect();
+            bot1 = null;
+        }
+
+        await wait(60 * 1000); // wait 1 minute
+
+        bot1 = startBot(USERNAME_1);
+
+        await wait(5000); // wait 5 seconds
+
+        if (bot2) {
+            bot2.disconnect();
+            bot2 = null;
+        }
     }
-
-    // Switch to the next bot
-    currentBot = currentBot === 1 ? 2 : 1;
-
-    // Repeat cycle
-    setTimeout(botCycle, 1000);
 }
 
 function wait(ms) {
@@ -63,7 +74,7 @@ app.listen(3000, () => {
     console.log("[SERVER] Health check running on port 3000");
 });
 
-// Keep process alive
+// Self-ping to keep Koyeb alive
 function keepAlive() {
     setInterval(() => {
         http.get('http://localhost:3000', res => {
@@ -71,7 +82,7 @@ function keepAlive() {
         }).on('error', err => {
             console.error('[Self-Ping] Error:', err.message);
         });
-    }, 5 * 60 * 1000);
+    }, 5 * 60 * 1000); // every 5 minutes
 }
 
 keepAlive();
