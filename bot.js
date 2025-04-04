@@ -1,69 +1,97 @@
 const bedrock = require('bedrock-protocol');
 const express = require('express');
+const http = require('http');
 
 const SERVER_HOST = 'Test-LEaV.aternos.me';
 const SERVER_PORT = 31944;
-const USERNAME_1 = 'chikabot69';
-const USERNAME_2 = 'ChikaBadmoosh69';
+const USERNAME_1 = 'chikabot69';       // cb
+const USERNAME_2 = 'ChikaBadmoosh69';    // CB
 
 let bot1 = null;
 let bot2 = null;
+let currentBot = null;
 
-function startBot(username, onSpawn, onDisconnect) {
+function startBot(username) {
     console.log(`[BOT] Attempting to connect as ${username}...`);
-
-    let bot = bedrock.createClient({
+    const bot = bedrock.createClient({
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: username,
-        offline: true // No authentication, cracked mode
+        offline: true // no Microsoft login
     });
 
     bot.on('login', () => console.log(`[BOT] ${username} Logged in.`));
-    
-    bot.on('spawn', () => {
-        console.log(`[BOT] ${username} Spawned into the world.`);
-        if (onSpawn) onSpawn(bot);
-    });
-
-    bot.on('disconnect', (reason) => {
-        console.log(`[BOT] ${username} Disconnected: ${reason}`);
-        if (onDisconnect) onDisconnect();
-    });
-
-    bot.on('kicked', (reason) => console.log(`[BOT] ${username} Kicked: ${reason}`));
-    bot.on('error', (err) => console.log(`[BOT] ${username} Error:`, err));
+    bot.on('spawn', () => console.log(`[BOT] ${username} Spawned.`));
+    bot.on('disconnect', reason => console.log(`[BOT] ${username} Disconnected: ${reason}`));
+    bot.on('kicked', reason => console.log(`[BOT] ${username} Kicked: ${reason}`));
+    bot.on('error', err => console.log(`[BOT] ${username} Error:`, err));
 
     return bot;
 }
 
-// Function to manage the bot switching loop
-function startBotLoop() {
-    bot1 = startBot(USERNAME_1, () => {
-        setTimeout(() => {
-            console.log(`[BOT] ${USERNAME_1} Leaving in 5 seconds...`);
-            setTimeout(() => {
-                bot1.disconnect();
-                console.log(`[BOT] ${USERNAME_1} Left. Now starting ${USERNAME_2}...`);
-                bot2 = startBot(USERNAME_2, () => {
-                    setTimeout(() => {
-                        console.log(`[BOT] ${USERNAME_2} Leaving in 5 seconds...`);
-                        setTimeout(() => {
-                            bot2.disconnect();
-                            console.log(`[BOT] ${USERNAME_2} Left. Restarting cycle...`);
-                            startBotLoop(); // Restart the cycle
-                        }, 5000);
-                    }, 60000); // Bot 2 stays for 1 minute
-                });
-            }, 5000);
-        }, 60000); // Bot 1 stays for 1 minute
-    });
+// Bot loop logic
+async function botCycle() {
+    console.log('[CYCLE] Starting bot cycle...');
+
+    // Step 1: Start cb
+    bot1 = startBot(USERNAME_1);
+    currentBot = 'cb';
+
+    await wait(60 * 1000); // wait 1 minute
+
+    // Step 2: Start CB
+    bot2 = startBot(USERNAME_2);
+    currentBot = 'cb-cb';
+
+    await wait(5000); // wait 5 seconds
+
+    // Step 3: Kick cb
+    if (bot1) {
+        bot1.disconnect();
+        bot1 = null;
+    }
+
+    await wait(60 * 1000); // wait 1 minute
+
+    // Step 4: Start cb again
+    bot1 = startBot(USERNAME_1);
+    currentBot = 'cb-CB';
+
+    await wait(5000); // wait 5 seconds
+
+    // Step 5: Kick CB
+    if (bot2) {
+        bot2.disconnect();
+        bot2 = null;
+    }
+
+    // Repeat
+    setTimeout(botCycle, 1000);
 }
 
-// Health check server
-const app = express();
-app.get('/', (req, res) => res.send('Bots are running!'));
-app.listen(3000, () => console.log("[Server] Health check running on port 3000"));
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-// Start the loop
-startBotLoop();
+// Express server for health check
+const app = express();
+app.get('/', (req, res) => {
+    res.send('Bots are running!');
+});
+app.listen(3000, () => {
+    console.log("[SERVER] Health check running on port 3000");
+});
+
+// Self-ping to keep Koyeb alive
+function keepAlive() {
+    setInterval(() => {
+        http.get('http://localhost:3000', res => {
+            console.log(`[Self-Ping] Status: ${res.statusCode}`);
+        }).on('error', err => {
+            console.error('[Self-Ping] Error:', err.message);
+        });
+    }, 5 * 60 * 1000); // every 5 minutes
+}
+
+keepAlive();
+botCycle();
