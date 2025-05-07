@@ -16,7 +16,8 @@ function startBot(username) {
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: username,
-        offline: true // no Microsoft login
+        offline: true, // no Microsoft login
+        version: '1.21.80'
     });
 
     bot.on('login', () => console.log(`[BOT] ${username} Logged in.`));
