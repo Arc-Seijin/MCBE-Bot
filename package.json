@@ -5,12 +5,8 @@
   "scripts": {
     "start": "node bot.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "bedrock-protocol": "latest",
+    "bedrock-protocol": "^3.46.0",
     "express": "^4.21.2"
   },
   "engines": {
